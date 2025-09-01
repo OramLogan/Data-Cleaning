@@ -1,9 +1,5 @@
 -- SQL Project - Data Cleaning
 
--- https://www.kaggle.com/datasets/swaptr/layoffs-2022
-
-
-
 
 
 
@@ -12,7 +8,7 @@ FROM world_layoffs.layoffs;
 
 
 
--- first thing we want to do is create a staging table. This is the one we will work in and clean the data. We want a table with the raw data in case something happens
+-- first we want to do create a staging table. This is the one we will work in and clean the data. We want a table with the raw data in case something happens
 CREATE TABLE world_layoffs.layoffs_staging 
 LIKE world_layoffs.layoffs;
 
@@ -20,18 +16,15 @@ INSERT layoffs_staging
 SELECT * FROM world_layoffs.layoffs;
 
 
--- now when we are data cleaning we usually follow a few steps
+-- now when cleaning the data I will follow this steps:
 -- 1. check for duplicates and remove any
 -- 2. standardize data and fix errors
 -- 3. Look at null values and see what 
--- 4. remove any columns and rows that are not necessary - few ways
+-- 4. remove any columns and rows that are not necessary
 
 
 
 -- 1. Remove Duplicates
-
-# First let's check for duplicates
-
 
 
 SELECT *
@@ -58,12 +51,12 @@ FROM (
 WHERE 
 	row_num > 1;
     
--- let's just look at oda to confirm
+-- let's look at the company Oda to confirm
 SELECT *
 FROM world_layoffs.layoffs_staging
 WHERE company = 'Oda'
 ;
--- it looks like these are all legitimate entries and shouldn't be deleted. We need to really look at every single row to be accurate
+-- it looks like these are all legitimate entries and shouldn't be deleted.
 
 -- these are our real duplicates 
 SELECT *
@@ -78,9 +71,9 @@ FROM (
 WHERE 
 	row_num > 1;
 
--- these are the ones we want to delete where the row number is > 1 or 2or greater essentially
+-- these are the ones we want to delete where the row number is > 1 
 
--- now you may want to write it like this:
+-- create cte:
 WITH DELETE_CTE AS 
 (
 SELECT *
@@ -96,8 +89,7 @@ WHERE
 	row_num > 1
 )
 DELETE
-FROM DELETE_CTE
-;
+FROM DELETE_CTE;
 
 
 WITH DELETE_CTE AS (
@@ -112,14 +104,12 @@ WHERE (company, location, industry, total_laid_off, percentage_laid_off, `date`,
 ) AND row_num > 1;
 
 -- one solution, which I think is a good one. Is to create a new column and add those row numbers in. Then delete where row numbers are over 2, then delete that column
--- so let's do it!!
 
 ALTER TABLE world_layoffs.layoffs_staging ADD row_num INT;
 
 
 SELECT *
-FROM world_layoffs.layoffs_staging
-;
+FROM world_layoffs.layoffs_staging;
 
 CREATE TABLE `world_layoffs`.`layoffs_staging2` (
 `company` text,
@@ -176,7 +166,7 @@ WHERE row_num >= 2;
 SELECT * 
 FROM world_layoffs.layoffs_staging2;
 
--- if we look at industry it looks like we have some null and empty rows, let's take a look at these
+-- if we look at industry it looks like we have some null and empty rows
 SELECT DISTINCT industry
 FROM world_layoffs.layoffs_staging2
 ORDER BY industry;
@@ -187,18 +177,17 @@ WHERE industry IS NULL
 OR industry = ''
 ORDER BY industry;
 
--- let's take a look at these
+-- let's take a deeper look at these
 SELECT *
 FROM world_layoffs.layoffs_staging2
 WHERE company LIKE 'Bally%';
--- nothing wrong here
+
 SELECT *
 FROM world_layoffs.layoffs_staging2
 WHERE company LIKE 'airbnb%';
 
 -- it looks like airbnb is a travel, but this one just isn't populated.
--- I'm sure it's the same for the others. What we can do is
--- write a query that if there is another row with the same company name, it will update it to the non-null industry values
+-- I'm going to write a query that if there is another row with the same company name, it will update it to the non-null industry values
 -- makes it easy so if there were thousands we wouldn't have to manually check them all
 
 -- we should set the blanks to nulls since those are typically easier to work with
@@ -289,7 +278,7 @@ FROM world_layoffs.layoffs_staging2;
 -- 3. Look at Null Values
 
 -- the null values in total_laid_off, percentage_laid_off, and funds_raised_millions all look normal. I don't think I want to change that
--- I like having them null because it makes it easier for calculations during the EDA phase
+-- I like having them null because it makes it easier for calculations during EDA
 
 -- so there isn't anything I want to change with the null values
 
@@ -322,37 +311,4 @@ DROP COLUMN row_num;
 
 SELECT * 
 FROM world_layoffs.layoffs_staging2;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
