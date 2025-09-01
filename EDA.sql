@@ -1,15 +1,10 @@
 -- EDA
 
--- Here we are jsut going to explore the data and find trends or patterns or anything interesting like outliers
-
--- normally when you start the EDA process you have some idea of what you're looking for
-
--- with this info we are just going to look around and see what we find!
+-- Here we are just going to explore the data and find trends or patterns or anything interesting like outliers
 
 SELECT * 
 FROM world_layoffs.layoffs_staging2;
 
--- EASIER QUERIES
 
 SELECT MAX(total_laid_off)
 FROM world_layoffs.layoffs_staging2;
@@ -30,29 +25,16 @@ FROM world_layoffs.layoffs_staging2
 WHERE  percentage_laid_off = 1;
 -- these are mostly startups it looks like who all went out of business during this time
 
--- if we order by funcs_raised_millions we can see how big some of these companies were
+-- if we order by funds_raised_millions we can see how big some of these companies were
 SELECT *
 FROM world_layoffs.layoffs_staging2
 WHERE  percentage_laid_off = 1
 ORDER BY funds_raised_millions DESC;
--- BritishVolt looks like an EV company, Quibi! I recognize that company - wow raised like 2 billion dollars and went under - ouch
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
--- SOMEWHAT TOUGHER AND MOSTLY USING GROUP BY--------------------------------------------------------------------------------------------------
 
 -- Companies with the biggest single Layoff
 
@@ -60,7 +42,7 @@ SELECT company, total_laid_off
 FROM world_layoffs.layoffs_staging
 ORDER BY 2 DESC
 LIMIT 5;
--- now that's just on a single day
+
 
 -- Companies with the most Total Layoffs
 SELECT company, SUM(total_laid_off)
@@ -78,7 +60,7 @@ GROUP BY location
 ORDER BY 2 DESC
 LIMIT 10;
 
--- this it total in the past 3 years or in the dataset
+-- this is total in the past 3 years or in the dataset
 
 SELECT country, SUM(total_laid_off)
 FROM world_layoffs.layoffs_staging2
@@ -107,10 +89,8 @@ ORDER BY 2 DESC;
 
 
 
--- TOUGHER QUERIES------------------------------------------------------------------------------------------------------------------------------------
+-- Now we look at companies with the most layoffs per year
 
--- Earlier we looked at Companies with the most Layoffs. Now let's look at that per year. It's a little more difficult.
--- I want to look at 
 
 WITH Company_Year AS 
 (
@@ -122,7 +102,7 @@ WITH Company_Year AS
   SELECT company, years, total_laid_off, DENSE_RANK() OVER (PARTITION BY years ORDER BY total_laid_off DESC) AS ranking
   FROM Company_Year
 )
-SELECT company, years, total_laid_off, ranking
+SELECT *
 FROM Company_Year_Rank
 WHERE ranking <= 3
 AND years IS NOT NULL
@@ -148,54 +128,4 @@ ORDER BY dates ASC
 SELECT dates, SUM(total_laid_off) OVER (ORDER BY dates ASC) as rolling_total_layoffs
 FROM DATE_CTE
 ORDER BY dates ASC;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
